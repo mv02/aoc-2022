@@ -1,0 +1,6 @@
+clang
+-std=c99
+-Wall
+-Wextra
+%h -x
+%h c-header
