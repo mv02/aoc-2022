@@ -1,43 +1,46 @@
 #include <stdio.h>
 
 enum choice {ROCK, PAPER, SCISSORS};
+enum result {LOSS, DRAW, WIN};
 
 /*
- * Determines which player has won the round.
- * @return 1 if player 1 wins, 2 if player 2 wins, 0 if draw
+ * Decides which option to choose to end the round with given result.
+ * @param opponent The opponent's choice
+ * @param result The desired round result
+ * @return The correct option
  */
-int get_winner(enum choice p1, enum choice p2)
+enum choice decide(enum choice opponent, enum result result)
 {
-  if (p1 == p2)
-    return 0;
-  if (p1 == ROCK && p2 == SCISSORS)
-    return 1;
-  if (p1 == PAPER && p2 == ROCK)
-    return 1;
-  if (p1 == SCISSORS && p2 == PAPER)
-    return 1;
-  return 2;
+  if (result == DRAW)
+    return opponent;
+  if (opponent == ROCK)
+    return result == WIN ? PAPER : SCISSORS;
+  if (opponent == PAPER)
+    return result == WIN ? SCISSORS : ROCK;
+  return result == WIN ? ROCK : PAPER;
 }
 
 int main()
 {
   FILE *file = fopen("input.txt", "r");
 
-  int score = 0, winner;
+  int score = 0;
   char input1, input2;
   enum choice player, opponent;
+  enum result result;
 
   while (fscanf(file, "%c %c\n", &input1, &input2) != EOF) {
     // Convert ABC/XYZ to 012
     opponent = input1 - 65;
-    player = input2 - 88;
+    result = input2 - 88;
+
+    player = decide(opponent, result);
 
     score += player + 1;
-    winner = get_winner(player, opponent);
 
-    if (winner == 1)
+    if (result == WIN)
       score += 6;
-    else if (winner == 0)
+    else if (result == DRAW)
       score += 3;
   }
 
