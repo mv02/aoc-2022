@@ -5,24 +5,50 @@
 #define MAX_LINE_LEN 50
 
 /*
- * Looks for the first duplicate character in two strings.
- * @return The duplicate character if found, otherwise '\0'
+ * Looks for the first n duplicate characters in two strings.
+ * @param output The array to save found duplicates into
+ * @param n How many duplicates to look for
+ * @return How many duplicates have been found
  */
-char find_duplicate(char *s1, char *s2)
+int find_duplicates(char *s1, char *s2, char output[], char n)
 {
-  for (int i = 0; i < (int)strlen(s1); ++i)
-    for (int j = 0; j < (int)strlen(s2); ++j)
+  int found = 0;
+
+  for (int i = 0; i < (int)strlen(s1); ++i) {
+    for (int j = 0; j < (int)strlen(s2); ++j) {
       if (s1[i] == s2[j])
-        return s1[i];
-  return '\0';
+        output[found++] = s1[i];
+      if (found == n)
+        return found;
+    }
+  }
+
+  return found;
+}
+
+/*
+ * Calculates the priority of given item.
+ * Lowercase items (a-z) have priorities 01-26,
+ * uppercase items (A-Z) have priorities 27-52.
+ */
+int get_priority(char item)
+{
+  if (item >= 97)
+    return item - 96;
+  if (item > 0)
+    return item - 38;
+  return 0;
 }
 
 int main()
 {
   FILE *file = fopen("input.txt", "r");
 
-  int sum = 0;
+  int sum1 = 0, sum2 = 0, count = 0;
   char *line = malloc(MAX_LINE_LEN);
+  char *group[3];
+  for (int i = 0; i < 3; ++i)
+    group[i] = malloc(MAX_LINE_LEN);
 
   while (fscanf(file, "%s\n", line) != EOF) {
     // Split the list in half
@@ -40,16 +66,36 @@ int main()
     right[i] = '\0';
 
     // Find the duplicate item and add its priority
-    char item = find_duplicate(left, right);
+    char duplicates[1];
+    find_duplicates(left, right, duplicates, 1);
+    sum1 += get_priority(duplicates[0]);
 
-    // a-z -> 01-26
-    // A-Z -> 27-52
-    sum += item;
-    if (item >= 97) sum -= 96;
-    else if (item >= 65) sum -= 38;
+    // Add current backpack to the group of 3 Elves
+    strcpy(group[count % 3], line);
+
+    // On every 3rd Elf, find the group's badge
+    if (++count % 3 == 0) {
+      char d1[MAX_LINE_LEN], d2[MAX_LINE_LEN], badge;
+      int d1_count = find_duplicates(group[0], group[1], d1, MAX_LINE_LEN);
+      int d2_count = find_duplicates(group[1], group[2], d2, MAX_LINE_LEN);
+
+      int found = 0;
+
+      for (int j = 0; j < d1_count && !found; ++j)
+        for (int k = 0; k < d2_count && !found; ++k)
+          if (d1[j] == d2[k]) {
+            badge = d1[j];
+            found = 1;
+          }
+
+      sum2 += get_priority(badge);
+    }
   }
 
-  printf("Sum: %d\n", sum);
+  printf("Sum of duplicate items: %d\n", sum1);
+  printf("Sum of badges: %d\n", sum2);
   free(line);
+  for (int i = 0; i < 3; ++i)
+    free(group[i]);
   fclose(file);
 }
