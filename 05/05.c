@@ -31,6 +31,15 @@ char stack_pop(struct stack *s)
   return s->crates[--s->size];
 }
 
+char stack_remove(struct stack *s, int index)
+{
+  char c = s->crates[index];
+  for (int i = index; i < s->size - 1; ++i)
+    s->crates[i] = s->crates[i + 1];
+  s->size--;
+  return c;
+}
+
 int stack_append(struct stack *s, char crate)
 {
   s->crates[s->size++] = crate;
@@ -141,8 +150,11 @@ int main()
   // Read and execute the instructions
   int count, from, to;
   while (fscanf(file, "move %d from %d to %d\n", &count, &from, &to) != EOF) {
+    struct stack *s1 = &supplies[from - 1];
+    int index = s1->size - count;
+
     for (int i = 0; i < count; ++i) {
-      char crate = stack_pop(&supplies[from - 1]);
+      char crate = stack_remove(s1, index);
       stack_append(&supplies[to - 1], crate);
     }
   }
